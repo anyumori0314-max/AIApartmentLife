@@ -8,6 +8,7 @@ namespace ApartmentLife.Data
     public class GameSaveData
     {
         public int day;
+        public PlayerData player;
         public List<ResidentData> residents = new List<ResidentData>();
         public List<RelationshipData> relationships = new List<RelationshipData>();
         public List<string> eventLogs = new List<string>();

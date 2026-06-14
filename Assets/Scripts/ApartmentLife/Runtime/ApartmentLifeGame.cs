@@ -25,10 +25,10 @@ namespace ApartmentLife.Runtime
             SetupCameraAndLight();
 
             apartmentBuilder = new ApartmentBuilder(this);
-            apartmentBuilder.Build(saveData.residents);
+            apartmentBuilder.Build(saveData.residents, saveData.player);
 
             ui = new ApartmentLifeUI();
-            ui.Build(AdvanceTime, SaveGame, LoadGame);
+            ui.Build(AdvanceTime, SaveGame, LoadGame, ApplyPlayerProfile, saveData.player);
             AddLog("小さなアパートの一日が始まりました。住人をクリックすると詳細を見られます。");
             RefreshView();
         }
@@ -82,12 +82,18 @@ namespace ApartmentLife.Runtime
             ApplyLoadedData(loaded);
 
             AddLog("セーブデータをロードしました。");
+            apartmentBuilder.UpdatePlayer(saveData.player);
+            ui.SetPlayerProfile(saveData.player);
             RefreshView();
         }
 
         private void ApplyLoadedData(GameSaveData loaded)
         {
             saveData.day = loaded.day;
+            if (loaded.player != null)
+            {
+                CopyPlayerData(loaded.player, saveData.player);
+            }
 
             // 生成済みの住人Viewが参照しているResidentDataを保つため、既存オブジェクトへ値をコピーします。
             if (loaded.residents != null)
@@ -126,6 +132,7 @@ namespace ApartmentLife.Runtime
         private void CreateDefaultData()
         {
             saveData.day = 1;
+            saveData.player = CreateDefaultPlayer();
             saveData.residents.Clear();
             saveData.relationships.Clear();
             saveData.eventLogs.Clear();
@@ -142,6 +149,40 @@ namespace ApartmentLife.Runtime
                     saveData.relationships.Add(new RelationshipData(saveData.residents[i].id, saveData.residents[j].id, 50));
                 }
             }
+        }
+
+        private PlayerData CreateDefaultPlayer()
+        {
+            return new PlayerData("player", "あなた", "穏やか", "散歩", "よろしく。", 60, 70, "白", "青", true);
+        }
+
+        private void ApplyPlayerProfile(PlayerData player)
+        {
+            CopyPlayerData(player, saveData.player);
+            apartmentBuilder.UpdatePlayer(saveData.player);
+            ui.SetPlayerProfile(saveData.player);
+            AddLog($"{saveData.player.name}のプロフィールを更新しました。");
+            RefreshView();
+        }
+
+        private void CopyPlayerData(PlayerData source, PlayerData target)
+        {
+            if (source == null || target == null)
+            {
+                return;
+            }
+
+            // UIと3D表示が同じPlayerDataを参照し続けられるよう、中身だけをコピーします。
+            target.id = string.IsNullOrEmpty(source.id) ? "player" : source.id;
+            target.name = string.IsNullOrEmpty(source.name) ? "あなた" : source.name;
+            target.personality = string.IsNullOrEmpty(source.personality) ? "穏やか" : source.personality;
+            target.hobby = string.IsNullOrEmpty(source.hobby) ? "散歩" : source.hobby;
+            target.catchphrase = string.IsNullOrEmpty(source.catchphrase) ? "よろしく。" : source.catchphrase;
+            target.mood = ClampStatus(source.mood);
+            target.energy = ClampStatus(source.energy);
+            target.bodyColor = string.IsNullOrEmpty(source.bodyColor) ? "白" : source.bodyColor;
+            target.clothesColor = string.IsNullOrEmpty(source.clothesColor) ? "青" : source.clothesColor;
+            target.isPlayer = true;
         }
 
         private void SetupCameraAndLight()

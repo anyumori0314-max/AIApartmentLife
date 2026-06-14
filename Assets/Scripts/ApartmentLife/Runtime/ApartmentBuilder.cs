@@ -9,6 +9,10 @@ namespace ApartmentLife.Runtime
     {
         private readonly ApartmentLifeGame game;
         private readonly Dictionary<string, ResidentView> residentViews = new Dictionary<string, ResidentView>();
+        private GameObject playerRoot;
+        private Renderer playerBodyRenderer;
+        private Renderer playerHeadRenderer;
+        private TextMesh playerNameLabel;
         private readonly Color[] residentColors =
         {
             new Color(0.22f, 0.50f, 0.95f),
@@ -40,7 +44,7 @@ namespace ApartmentLife.Runtime
             this.game = game;
         }
 
-        public void Build(IReadOnlyList<ResidentData> residents)
+        public void Build(IReadOnlyList<ResidentData> residents, PlayerData player)
         {
             residentViews.Clear();
             GameObject root = new GameObject("Generated Apartment");
@@ -66,6 +70,7 @@ namespace ApartmentLife.Runtime
             }
 
             CreateSharedHall(root.transform);
+            CreatePlayer(root.transform, player);
         }
 
         public void RefreshResidentLabels()
@@ -91,6 +96,30 @@ namespace ApartmentLife.Runtime
             // イベントに関わった2人だけを短く動かし、数秒後にResidentView側で元の場所へ戻します。
             actorView.PlayReaction(actorEmotion, partnerView);
             partnerView.PlayReaction(partnerEmotion, actorView);
+        }
+
+        public void UpdatePlayer(PlayerData player)
+        {
+            if (playerRoot == null)
+            {
+                return;
+            }
+
+            playerRoot.name = $"Player_{player.name}";
+            if (playerBodyRenderer != null)
+            {
+                playerBodyRenderer.material.color = ResolveColor(player.clothesColor);
+            }
+
+            if (playerHeadRenderer != null)
+            {
+                playerHeadRenderer.material.color = ResolveColor(player.bodyColor);
+            }
+
+            if (playerNameLabel != null)
+            {
+                playerNameLabel.text = $"あなた\n{player.name}";
+            }
         }
 
         private void CreateRoom(Transform parent, Vector3 center, float width, float depth, int roomNumber)
@@ -138,19 +167,52 @@ namespace ApartmentLife.Runtime
             CreateNameLabel(body.transform, resident.name);
         }
 
+        private void CreatePlayer(Transform parent, PlayerData player)
+        {
+            playerRoot = new GameObject($"Player_{player.name}");
+            playerRoot.transform.SetParent(parent);
+            playerRoot.transform.position = new Vector3(0f, 0f, -1.2f);
+
+            // Capsuleを服、Sphereを頭として使い、主人公だけ少し人型に見せます。
+            GameObject body = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            body.name = "Player Body";
+            body.transform.SetParent(playerRoot.transform);
+            body.transform.localPosition = new Vector3(0f, 0.85f, 0f);
+            body.transform.localScale = new Vector3(0.75f, 0.85f, 0.75f);
+            playerBodyRenderer = body.GetComponent<Renderer>();
+            playerBodyRenderer.material = new Material(GetDefaultShader());
+
+            GameObject head = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            head.name = "Player Head";
+            head.transform.SetParent(playerRoot.transform);
+            head.transform.localPosition = new Vector3(0f, 1.75f, 0f);
+            head.transform.localScale = new Vector3(0.58f, 0.58f, 0.58f);
+            playerHeadRenderer = head.GetComponent<Renderer>();
+            playerHeadRenderer.material = new Material(GetDefaultShader());
+
+            playerNameLabel = CreateNameLabel(playerRoot.transform, $"あなた\n{player.name}", new Vector3(0f, 2.35f, 0f), 0.24f);
+            UpdatePlayer(player);
+        }
+
         private void CreateNameLabel(Transform parent, string label)
+        {
+            CreateNameLabel(parent, label, new Vector3(0f, 1.35f, 0f), 0.22f);
+        }
+
+        private TextMesh CreateNameLabel(Transform parent, string label, Vector3 localPosition, float characterSize)
         {
             GameObject textObject = new GameObject("Name Label");
             textObject.transform.SetParent(parent);
-            textObject.transform.localPosition = new Vector3(0f, 1.35f, 0f);
+            textObject.transform.localPosition = localPosition;
             textObject.transform.localRotation = Quaternion.Euler(65f, 0f, 0f);
 
             TextMesh textMesh = textObject.AddComponent<TextMesh>();
             textMesh.text = label;
             textMesh.anchor = TextAnchor.MiddleCenter;
             textMesh.alignment = TextAlignment.Center;
-            textMesh.characterSize = 0.22f;
+            textMesh.characterSize = characterSize;
             textMesh.color = Color.black;
+            return textMesh;
         }
 
         private GameObject CreateCube(Transform parent, string name, Vector3 position, Vector3 scale, Color color)
@@ -166,6 +228,26 @@ namespace ApartmentLife.Runtime
             renderer.material.color = color;
 
             return cube;
+        }
+
+        private Color ResolveColor(string colorName)
+        {
+            switch (colorName)
+            {
+                case "赤":
+                    return new Color(0.95f, 0.22f, 0.2f);
+                case "緑":
+                    return new Color(0.25f, 0.75f, 0.35f);
+                case "黄":
+                    return new Color(0.95f, 0.82f, 0.18f);
+                case "紫":
+                    return new Color(0.62f, 0.38f, 0.9f);
+                case "白":
+                    return new Color(0.93f, 0.93f, 0.9f);
+                case "青":
+                default:
+                    return new Color(0.25f, 0.5f, 0.95f);
+            }
         }
 
         private Shader GetDefaultShader()
