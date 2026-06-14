@@ -32,7 +32,7 @@ namespace ApartmentLife.UI
             CreateButton(topPanel.transform, "Load Button", "ロード", defaultFont, new Vector2(382f, -12f), new Vector2(88f, 34f), onLoad);
 
             GameObject logPanel = CreatePanel(canvas.transform, "Event Log Panel", new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(14f, -18f), new Vector2(360f, 430f), new Color(0.05f, 0.07f, 0.09f, 0.68f));
-            CreateText(logPanel.transform, "Log Header", "イベントログ", defaultFont, 20, TextAnchor.MiddleLeft, new Vector2(16f, -14f), new Vector2(220f, 30f));
+            CreateText(logPanel.transform, "Log Header", "最近の出来事", defaultFont, 20, TextAnchor.MiddleLeft, new Vector2(16f, -14f), new Vector2(220f, 30f));
             logText = CreateText(logPanel.transform, "Log Text", "", defaultFont, 16, TextAnchor.UpperLeft, new Vector2(16f, -54f), new Vector2(328f, 352f));
 
             detailPanel = CreatePanel(canvas.transform, "Resident Detail Panel", new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-14f, -18f), new Vector2(340f, 430f), new Color(0.05f, 0.07f, 0.09f, 0.68f));
@@ -47,7 +47,7 @@ namespace ApartmentLife.UI
 
         public void SetLogs(IReadOnlyList<string> logs)
         {
-            int start = Mathf.Max(0, logs.Count - 7);
+            int start = Mathf.Max(0, logs.Count - 4);
             List<string> visibleLogs = new List<string>();
             for (int i = start; i < logs.Count; i++)
             {
