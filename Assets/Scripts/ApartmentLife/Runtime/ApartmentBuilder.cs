@@ -72,16 +72,25 @@ namespace ApartmentLife.Runtime
         {
             foreach (ResidentView view in residentViews.Values)
             {
-                Renderer renderer = view.GetComponent<Renderer>();
-                if (renderer == null)
-                {
-                    continue;
-                }
-
-                // 住人ごとの基準色は残しつつ、気分が高いほど少し明るく見せます。
-                float moodPercent = Mathf.InverseLerp(0, 100, view.Resident.mood);
-                renderer.material.color = Color.Lerp(view.BaseColor * 0.78f, Color.Lerp(view.BaseColor, Color.white, 0.22f), moodPercent);
+                view.SetMoodColor(view.Resident.mood);
             }
+        }
+
+        public void PlayPairReaction(ResidentData actor, ResidentData partner, EmotionState actorEmotion, EmotionState partnerEmotion)
+        {
+            if (!residentViews.TryGetValue(actor.id, out ResidentView actorView))
+            {
+                return;
+            }
+
+            if (!residentViews.TryGetValue(partner.id, out ResidentView partnerView))
+            {
+                return;
+            }
+
+            // イベントに関わった2人だけを短く動かし、数秒後にResidentView側で元の場所へ戻します。
+            actorView.PlayReaction(actorEmotion, partnerView);
+            partnerView.PlayReaction(partnerEmotion, actorView);
         }
 
         private void CreateRoom(Transform parent, Vector3 center, float width, float depth, int roomNumber)

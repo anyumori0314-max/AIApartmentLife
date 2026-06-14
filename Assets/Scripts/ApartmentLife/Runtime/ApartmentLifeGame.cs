@@ -48,6 +48,7 @@ namespace ApartmentLife.Runtime
 
             ApplyEvent(eventType, actor, partner);
             RefreshView();
+            PlayEventReaction(eventType, actor, partner);
             SelectResident(actor);
         }
 
@@ -243,6 +244,44 @@ namespace ApartmentLife.Runtime
             ChangeRelationship(actor.id, partner.id, relationshipDelta);
 
             AddLog($"Day {saveData.day} [{eventName}] {detail} 関係 {FormatDelta(relationshipDelta)} / 気分 {actor.name}{FormatDelta(actorMoodDelta)}, {partner.name}{FormatDelta(partnerMoodDelta)}");
+        }
+
+        private void PlayEventReaction(DailyEventType eventType, ResidentData actor, ResidentData partner)
+        {
+            EmotionState actorEmotion = EmotionState.Neutral;
+            EmotionState partnerEmotion = EmotionState.Neutral;
+
+            switch (eventType)
+            {
+                case DailyEventType.Chat:
+                    actorEmotion = PickEmotion(EmotionState.Friendly, EmotionState.Happy);
+                    partnerEmotion = PickEmotion(EmotionState.Friendly, EmotionState.Happy);
+                    break;
+                case DailyEventType.Argument:
+                    actorEmotion = PickEmotion(EmotionState.Angry, EmotionState.Awkward);
+                    partnerEmotion = PickEmotion(EmotionState.Angry, EmotionState.Awkward);
+                    break;
+                case DailyEventType.Reconcile:
+                    actorEmotion = PickEmotion(EmotionState.Happy, EmotionState.Friendly);
+                    partnerEmotion = PickEmotion(EmotionState.Happy, EmotionState.Friendly);
+                    break;
+                case DailyEventType.ShareHobby:
+                    actorEmotion = EmotionState.Happy;
+                    partnerEmotion = EmotionState.Happy;
+                    break;
+                case DailyEventType.Consult:
+                    actorEmotion = EmotionState.Worried;
+                    partnerEmotion = EmotionState.Friendly;
+                    break;
+            }
+
+            // 感情は見た目だけの一時演出です。イベント結果やセーブデータには影響させません。
+            apartmentBuilder.PlayPairReaction(actor, partner, actorEmotion, partnerEmotion);
+        }
+
+        private EmotionState PickEmotion(EmotionState first, EmotionState second)
+        {
+            return random.Next(2) == 0 ? first : second;
         }
 
         private void ChangeRelationship(string idA, string idB, int delta)
