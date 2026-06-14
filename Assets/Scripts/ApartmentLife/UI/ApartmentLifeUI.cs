@@ -25,19 +25,19 @@ namespace ApartmentLife.UI
                 defaultFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
             }
 
-            GameObject topPanel = CreatePanel(canvas.transform, "Top Panel", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(10f, -10f), new Vector2(430f, 76f), new Color(0f, 0f, 0f, 0.55f));
-            dayText = CreateText(topPanel.transform, "Day Text", "Day 1", defaultFont, 18, TextAnchor.MiddleLeft, new Vector2(12f, -10f), new Vector2(100f, 28f));
-            CreateButton(topPanel.transform, "Advance Time Button", "時間を進める", defaultFont, new Vector2(115f, -12f), new Vector2(130f, 34f), onAdvanceTime);
-            CreateButton(topPanel.transform, "Save Button", "セーブ", defaultFont, new Vector2(255f, -12f), new Vector2(72f, 34f), onSave);
-            CreateButton(topPanel.transform, "Load Button", "ロード", defaultFont, new Vector2(335f, -12f), new Vector2(72f, 34f), onLoad);
+            GameObject topPanel = CreatePanel(canvas.transform, "Top Panel", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -12f), new Vector2(500f, 58f), new Color(0.05f, 0.07f, 0.09f, 0.72f));
+            dayText = CreateText(topPanel.transform, "Day Text", "Day 1", defaultFont, 20, TextAnchor.MiddleLeft, new Vector2(16f, -12f), new Vector2(100f, 34f));
+            CreateButton(topPanel.transform, "Advance Time Button", "時間を進める", defaultFont, new Vector2(120f, -12f), new Vector2(150f, 34f), onAdvanceTime);
+            CreateButton(topPanel.transform, "Save Button", "セーブ", defaultFont, new Vector2(282f, -12f), new Vector2(88f, 34f), onSave);
+            CreateButton(topPanel.transform, "Load Button", "ロード", defaultFont, new Vector2(382f, -12f), new Vector2(88f, 34f), onLoad);
 
-            GameObject logPanel = CreatePanel(canvas.transform, "Event Log Panel", new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(10f, 10f), new Vector2(510f, 250f), new Color(0f, 0f, 0f, 0.55f));
-            CreateText(logPanel.transform, "Log Header", "イベントログ", defaultFont, 18, TextAnchor.MiddleLeft, new Vector2(12f, -8f), new Vector2(220f, 28f));
-            logText = CreateText(logPanel.transform, "Log Text", "", defaultFont, 15, TextAnchor.UpperLeft, new Vector2(12f, -40f), new Vector2(486f, 198f));
+            GameObject logPanel = CreatePanel(canvas.transform, "Event Log Panel", new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(14f, -18f), new Vector2(360f, 430f), new Color(0.05f, 0.07f, 0.09f, 0.68f));
+            CreateText(logPanel.transform, "Log Header", "イベントログ", defaultFont, 20, TextAnchor.MiddleLeft, new Vector2(16f, -14f), new Vector2(220f, 30f));
+            logText = CreateText(logPanel.transform, "Log Text", "", defaultFont, 16, TextAnchor.UpperLeft, new Vector2(16f, -54f), new Vector2(328f, 352f));
 
-            detailPanel = CreatePanel(canvas.transform, "Resident Detail Panel", new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-10f, -10f), new Vector2(320f, 245f), new Color(0f, 0f, 0f, 0.6f));
-            CreateText(detailPanel.transform, "Detail Header", "住人詳細", defaultFont, 18, TextAnchor.MiddleLeft, new Vector2(12f, -8f), new Vector2(220f, 28f));
-            detailText = CreateText(detailPanel.transform, "Detail Text", "住人をクリックしてください。", defaultFont, 15, TextAnchor.UpperLeft, new Vector2(12f, -40f), new Vector2(296f, 190f));
+            detailPanel = CreatePanel(canvas.transform, "Resident Detail Panel", new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-14f, -18f), new Vector2(340f, 430f), new Color(0.05f, 0.07f, 0.09f, 0.68f));
+            CreateText(detailPanel.transform, "Detail Header", "住人詳細", defaultFont, 20, TextAnchor.MiddleLeft, new Vector2(16f, -14f), new Vector2(220f, 30f));
+            detailText = CreateText(detailPanel.transform, "Detail Text", "住人をクリックすると、ここに性格・趣味・関係性が表示されます。", defaultFont, 16, TextAnchor.UpperLeft, new Vector2(16f, -54f), new Vector2(308f, 352f));
         }
 
         public void SetDay(int day)
@@ -47,7 +47,7 @@ namespace ApartmentLife.UI
 
         public void SetLogs(IReadOnlyList<string> logs)
         {
-            int start = Mathf.Max(0, logs.Count - 8);
+            int start = Mathf.Max(0, logs.Count - 7);
             List<string> visibleLogs = new List<string>();
             for (int i = start; i < logs.Count; i++)
             {
@@ -61,13 +61,13 @@ namespace ApartmentLife.UI
         {
             detailPanel.SetActive(true);
             detailText.text =
-                $"ID: {resident.id}\n" +
                 $"名前: {resident.name}\n" +
+                $"ID: {resident.id}\n\n" +
                 $"性格: {resident.personality}\n" +
                 $"趣味: {resident.hobby}\n" +
-                $"口ぐせ: {resident.catchphrase}\n" +
-                $"気分: {resident.mood}\n" +
-                $"元気: {resident.energy}\n\n" +
+                $"口ぐせ: {resident.catchphrase}\n\n" +
+                $"気分: {resident.mood} / 100\n" +
+                $"元気: {resident.energy} / 100\n\n" +
                 "関係性\n" +
                 string.Join("\n", relationships);
         }
@@ -77,7 +77,10 @@ namespace ApartmentLife.UI
             GameObject canvasObject = new GameObject("Apartment Life UI");
             Canvas canvas = canvasObject.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvasObject.AddComponent<CanvasScaler>().uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            CanvasScaler scaler = canvasObject.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1280f, 720f);
+            scaler.matchWidthOrHeight = 0.5f;
             canvasObject.AddComponent<GraphicRaycaster>();
             return canvas;
         }
@@ -122,6 +125,7 @@ namespace ApartmentLife.UI
             uiText.text = text;
             uiText.font = font;
             uiText.fontSize = fontSize;
+            uiText.lineSpacing = 1.18f;
             uiText.color = Color.white;
             uiText.alignment = alignment;
             uiText.horizontalOverflow = HorizontalWrapMode.Wrap;
@@ -138,7 +142,7 @@ namespace ApartmentLife.UI
 
         private void CreateButton(Transform parent, string name, string label, Font font, Vector2 anchoredPosition, Vector2 size, Action onClick)
         {
-            GameObject buttonObject = CreatePanel(parent, name, new Vector2(0f, 1f), new Vector2(0f, 1f), anchoredPosition, size, new Color(0.18f, 0.35f, 0.55f, 0.95f));
+            GameObject buttonObject = CreatePanel(parent, name, new Vector2(0f, 1f), new Vector2(0f, 1f), anchoredPosition, size, new Color(0.18f, 0.34f, 0.52f, 0.96f));
             Button button = buttonObject.AddComponent<Button>();
             button.onClick.AddListener(() => onClick?.Invoke());
 

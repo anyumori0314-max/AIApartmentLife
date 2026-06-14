@@ -9,6 +9,29 @@ namespace ApartmentLife.Runtime
     {
         private readonly ApartmentLifeGame game;
         private readonly Dictionary<string, ResidentView> residentViews = new Dictionary<string, ResidentView>();
+        private readonly Color[] residentColors =
+        {
+            new Color(0.22f, 0.50f, 0.95f),
+            new Color(0.95f, 0.38f, 0.35f),
+            new Color(0.28f, 0.72f, 0.48f),
+            new Color(0.86f, 0.56f, 0.95f)
+        };
+
+        private readonly Color[] floorColors =
+        {
+            new Color(0.78f, 0.73f, 0.63f),
+            new Color(0.70f, 0.78f, 0.69f),
+            new Color(0.72f, 0.74f, 0.84f),
+            new Color(0.82f, 0.72f, 0.70f)
+        };
+
+        private readonly Color[] wallColors =
+        {
+            new Color(0.92f, 0.88f, 0.78f),
+            new Color(0.84f, 0.91f, 0.82f),
+            new Color(0.84f, 0.86f, 0.94f),
+            new Color(0.94f, 0.84f, 0.84f)
+        };
 
         public IReadOnlyDictionary<string, ResidentView> ResidentViews => residentViews;
 
@@ -49,14 +72,15 @@ namespace ApartmentLife.Runtime
         {
             foreach (ResidentView view in residentViews.Values)
             {
-                Renderer renderer = view.GetComponentInChildren<Renderer>();
+                Renderer renderer = view.GetComponent<Renderer>();
                 if (renderer == null)
                 {
                     continue;
                 }
 
+                // 住人ごとの基準色は残しつつ、気分が高いほど少し明るく見せます。
                 float moodPercent = Mathf.InverseLerp(0, 100, view.Resident.mood);
-                renderer.material.color = Color.Lerp(new Color(0.35f, 0.55f, 1f), new Color(1f, 0.8f, 0.25f), moodPercent);
+                renderer.material.color = Color.Lerp(view.BaseColor * 0.78f, Color.Lerp(view.BaseColor, Color.white, 0.22f), moodPercent);
             }
         }
 
@@ -65,10 +89,14 @@ namespace ApartmentLife.Runtime
             GameObject roomRoot = new GameObject($"Room {roomNumber}");
             roomRoot.transform.SetParent(parent);
 
-            CreateCube(roomRoot.transform, "Floor", center + new Vector3(0f, -0.05f, 0f), new Vector3(width, 0.1f, depth), new Color(0.78f, 0.76f, 0.68f));
-            CreateCube(roomRoot.transform, "Back Wall", center + new Vector3(0f, 1f, depth / 2f), new Vector3(width, 2f, 0.12f), new Color(0.92f, 0.9f, 0.82f));
-            CreateCube(roomRoot.transform, "Left Wall", center + new Vector3(-width / 2f, 1f, 0f), new Vector3(0.12f, 2f, depth), new Color(0.88f, 0.86f, 0.78f));
-            CreateCube(roomRoot.transform, "Right Wall", center + new Vector3(width / 2f, 1f, 0f), new Vector3(0.12f, 2f, depth), new Color(0.88f, 0.86f, 0.78f));
+            Color floorColor = floorColors[(roomNumber - 1) % floorColors.Length];
+            Color wallColor = wallColors[(roomNumber - 1) % wallColors.Length];
+            Color sideWallColor = Color.Lerp(wallColor, Color.gray, 0.12f);
+
+            CreateCube(roomRoot.transform, "Floor", center + new Vector3(0f, -0.05f, 0f), new Vector3(width, 0.1f, depth), floorColor);
+            CreateCube(roomRoot.transform, "Back Wall", center + new Vector3(0f, 1f, depth / 2f), new Vector3(width, 2f, 0.12f), wallColor);
+            CreateCube(roomRoot.transform, "Left Wall", center + new Vector3(-width / 2f, 1f, 0f), new Vector3(0.12f, 2f, depth), sideWallColor);
+            CreateCube(roomRoot.transform, "Right Wall", center + new Vector3(width / 2f, 1f, 0f), new Vector3(0.12f, 2f, depth), sideWallColor);
 
             // 小さな家具の代わりにベッドと机をキューブで置き、部屋らしさを出します。
             CreateCube(roomRoot.transform, "Simple Bed", center + new Vector3(-1.2f, 0.2f, -0.9f), new Vector3(1.5f, 0.35f, 0.9f), new Color(0.45f, 0.65f, 0.9f));
@@ -91,10 +119,11 @@ namespace ApartmentLife.Runtime
 
             Renderer renderer = body.GetComponent<Renderer>();
             renderer.material = new Material(GetDefaultShader());
-            renderer.material.color = new Color(0.35f + 0.12f * index, 0.55f, 0.95f - 0.1f * index);
+            Color residentColor = residentColors[index % residentColors.Length];
+            renderer.material.color = residentColor;
 
             ResidentView view = body.AddComponent<ResidentView>();
-            view.Initialize(game, resident);
+            view.Initialize(game, resident, residentColor);
             residentViews[resident.id] = view;
 
             CreateNameLabel(body.transform, resident.name);

@@ -9,13 +9,16 @@ namespace ApartmentLife.Runtime
     {
         private ApartmentLifeGame game;
         private ResidentData resident;
+        private Color baseColor;
 
         public ResidentData Resident => resident;
+        public Color BaseColor => baseColor;
 
-        public void Initialize(ApartmentLifeGame owner, ResidentData data)
+        public void Initialize(ApartmentLifeGame owner, ResidentData data, Color residentColor)
         {
             game = owner;
             resident = data;
+            baseColor = residentColor;
             gameObject.name = $"Resident_{data.name}";
         }
 

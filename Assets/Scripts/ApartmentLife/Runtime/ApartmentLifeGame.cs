@@ -157,9 +157,10 @@ namespace ApartmentLife.Runtime
                 camera.gameObject.AddComponent<UnityEngine.EventSystems.PhysicsRaycaster>();
             }
 
-            camera.transform.position = new Vector3(0f, 9.5f, -9.5f);
-            camera.transform.rotation = Quaternion.Euler(55f, 0f, 0f);
-            camera.fieldOfView = 42f;
+            // 4部屋全体と廊下が一画面に入りやすいよう、少し引いた斜め上から見下ろします。
+            camera.transform.position = new Vector3(0f, 10.8f, -11.8f);
+            camera.transform.rotation = Quaternion.Euler(58f, 0f, 0f);
+            camera.fieldOfView = 46f;
             camera.clearFlags = CameraClearFlags.Skybox;
 
             GameObject lightObject = new GameObject("Apartment Key Light");
